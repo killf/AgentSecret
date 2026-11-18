@@ -1,0 +1,8 @@
+.git
+.gitignore
+server/target*
+web/node_modules
+web/dist
+web/tsconfig.tsbuildinfo
+gateway-token.txt
+mock_upstream.py

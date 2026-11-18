@@ -1,0 +1,22 @@
+FROM node:24-alpine AS frontend-build
+WORKDIR /web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY web ./
+RUN npm run build
+
+FROM rust:1.100 AS backend-build
+WORKDIR /src
+COPY server/Cargo.toml server/Cargo.lock ./
+RUN mkdir src && printf 'fn main() {}' > src/main.rs && cargo fetch
+COPY server ./server
+COPY --from=frontend-build /web/dist /src/web/dist
+WORKDIR /src/server
+RUN cargo build --release
+
+FROM gcr.io/distroless/cc-debian13:nonroot
+WORKDIR /app
+COPY --from=backend-build /src/server/target/release/agentsecret-server /usr/local/bin/agentsecret-server
+EXPOSE 8080
+USER nonroot:nonroot
+ENTRYPOINT ["/usr/local/bin/agentsecret-server"]

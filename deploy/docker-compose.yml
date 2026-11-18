@@ -1,0 +1,47 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?required}
+      MYSQL_DATABASE: agentsecret
+      MYSQL_USER: agentsecret
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?required}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "127.0.0.1:13306:3306"
+
+  server:
+    build:
+      context: ..
+      dockerfile: deploy/docker/Dockerfile.server
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://agentsecret:${MYSQL_PASSWORD}@mysql:3306/agentsecret
+      AGENTSECRET_JWT_SECRET: ${AGENTSECRET_JWT_SECRET:?required}
+      AGENTSECRET_MASTER_KEY: ${AGENTSECRET_MASTER_KEY:?required}
+      AGENTSECRET_ADDR: 0.0.0.0:8080
+      AGENTSECRET_LOG: json
+      AGENTSECRET_CREDENTIAL_ACTIONS: ${AGENTSECRET_CREDENTIAL_ACTIONS:-}
+      AGENTSECRET_PROVIDER_QUOTAS: ${AGENTSECRET_PROVIDER_QUOTAS:-}
+    ports:
+      - "127.0.0.1:8080:8080"
+    group_add:
+      - "${DOCKER_GID:?required}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+  mysql-data:
