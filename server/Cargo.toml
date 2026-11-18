@@ -1,0 +1,33 @@
+[package]
+name = "agentsecret-server"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.100"
+
+[dependencies]
+actix-rt = "2"
+actix-web = "4"
+aes-gcm = "0.10"
+base64 = "0.22"
+bollard = "0.19"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4", features = ["derive", "env"] }
+jsonwebtoken = "9"
+rand = "0.8"
+regex = "1"
+rust-embed = "8"
+reqwest = { version = "0.13", default-features = false, features = ["json", "stream", "rustls"] }
+sea-orm = { version = "2.0.2", features = ["sqlx-mysql", "runtime-tokio-rustls", "macros"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha1 = "0.10"
+sqlx = { version = "0.9", features = ["mysql", "runtime-tokio", "tls-rustls", "chrono", "json", "migrate"] }
+thiserror = "2"
+tokio = { version = "1", features = ["time", "sync"] }
+futures-util = "0.3"
+tracing = "0.1"
+tracing-actix-web = "0.7"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+[features]
+integration = []
